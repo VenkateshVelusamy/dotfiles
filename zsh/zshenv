@@ -1,0 +1,18 @@
+# ~/.zshenv — sourced by every zsh invocation (login, interactive,
+# and non-interactive). Keep this file minimal: only the env var
+# setup that absolutely needs to run before any subprocess.
+#
+# Login-only / interactive-only setup belongs in ~/.zprofile or
+# ~/.zshrc respectively.
+
+# Rust toolchain — needed for cargo invocations from non-interactive
+# shells (CI, IDE plugins, claude-code's Bash tool, etc.). The same
+# line lives in ~/.zshrc for backward compat with already-running
+# interactive shells.
+if [ -f "$HOME/.cargo/env" ]; then
+    . "$HOME/.cargo/env"
+fi
+
+# bat follows the terminal's ANSI palette (rose-pine-moon set by wezterm), so
+# cat/cheat-sheet output matches nvim's rose-pine and the prompt.
+export BAT_THEME="ansi"

@@ -1,0 +1,10 @@
+# Machine-local overrides — never commit (work creds, per-host env)
+.zshrc.local
+*.local
+
+# Plugin/state dirs that install themselves
+zsh/plugins/
+nvim/plugins/
+
+# OS cruft
+.DS_Store

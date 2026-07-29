@@ -1,0 +1,14 @@
+# Modular zsh config. Order matters: history/completion, then aliases, fzf,
+# plugins, prompt last.
+for _zmod in history aliases fzf plugins prompt; do
+  [ -r "$HOME/.config/zsh/${_zmod}.zsh" ] && source "$HOME/.config/zsh/${_zmod}.zsh"
+done
+unset _zmod
+
+# Rust toolchain (harmless if absent).
+[ -f "$HOME/.cargo/env" ] && source "$HOME/.cargo/env"
+[ -f "$HOME/.local/bin/env" ] && . "$HOME/.local/bin/env"
+
+# Machine-local, untracked overrides (work credentials, per-host env, etc.).
+# This file is gitignored on purpose -- keep secrets out of the repo.
+[ -r "$HOME/.zshrc.local" ] && source "$HOME/.zshrc.local"

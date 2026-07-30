@@ -17,6 +17,18 @@ dotfiles/
   starship/starship.toml  -> ~/.config/starship.toml
   cheatsheets/*.md        -> ~/.*-cheatsheet.md
   AGENTS.md               -> ~/.claude/CLAUDE.md, ~/.codex/AGENTS.md, ~/AGENTS.md, ~/CLAUDE.md
+  claude/commands/*.md    -> ~/.claude/commands/*.md   (e.g. /checkpoint)
+```
+
+## Claude Code customizations
+
+`claude/` holds generic Claude Code additions (see `claude/README.md`). The
+`/checkpoint` slash command is symlinked by `install.sh`. Its automatic
+PreCompact/SessionEnd hook is machine-local (not symlinked) — enable it once
+per machine:
+
+```sh
+~/dotfiles/claude/install-checkpoint-hook.sh
 ```
 
 `AGENTS.md` is one global instruction file linked to every location Claude and

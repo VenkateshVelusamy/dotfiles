@@ -47,6 +47,13 @@ link "$DOTFILES/AGENTS.md" "$HOME/.codex/AGENTS.md"
 link "$DOTFILES/AGENTS.md" "$HOME/AGENTS.md"
 link "$DOTFILES/AGENTS.md" "$HOME/CLAUDE.md"
 
+# Claude Code: the /checkpoint slash command (session-summary before compact/clear).
+# The PreCompact/SessionEnd hook that calls claude/checkpoint.sh is NOT symlinked:
+# it lives in the machine-local ~/.claude/settings.json. Enable it once with:
+#   claude/install-checkpoint-hook.sh
+link "$DOTFILES/claude/commands/checkpoint.md" "$HOME/.claude/commands/checkpoint.md"
+chmod +x "$DOTFILES/claude/checkpoint.sh" "$DOTFILES/claude/install-checkpoint-hook.sh" 2>/dev/null || true
+
 echo
 echo "Done. For machine-local secrets (e.g. work AWS env), create ~/.zshrc.local"
 echo "(gitignored) and put those exports there."

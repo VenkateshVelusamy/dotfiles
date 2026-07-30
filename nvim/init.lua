@@ -480,6 +480,8 @@ vim.pack.add({
 	"https://github.com/NeogitOrg/neogit",
 	"https://github.com/lewis6991/gitsigns.nvim",
 	"https://github.com/folke/which-key.nvim",
+	-- GitHub/GHE issues + PR review (inline comment threads) in-editor
+	"https://github.com/pwntester/octo.nvim",
 })
 
 -- rose-pine-moon, shared with wezterm + shell. Keep backgrounds transparent so
@@ -726,6 +728,20 @@ require("gitsigns").setup({
 vim.keymap.set("n", "<leader>gB", function()
 	require("gitsigns").toggle_current_line_blame()
 end, { desc = "Toggle line blame" })
+
+-- octo: GitHub/GHE PRs + issues as editable buffers. github_hostname points the
+-- default gh transport at the work GHE; picker reuses fzf-lua (already loaded).
+require("octo").setup({
+	github_hostname = "siemens.ghe.com",
+	picker = "fzf-lua",
+	-- octo strips GH_HOST from gh's env; gh_env forces graphql at the GHE host.
+	gh_env = { GH_HOST = "siemens.ghe.com" },
+	-- Clones here often set origin to a local path; prefer the GHE remote so
+	-- octo resolves the server repo instead of parsing a filesystem path.
+	default_remote = { "ghe", "origin" },
+})
+vim.keymap.set("n", "<leader>op", "<cmd>Octo pr list<CR>", { desc = "Octo: list PRs" })
+vim.keymap.set("n", "<leader>or", "<cmd>Octo review<CR>", { desc = "Octo: start/resume review" })
 
 -- which-key: press a prefix (e.g. Space) and see the available mappings.
 require("which-key").setup({})

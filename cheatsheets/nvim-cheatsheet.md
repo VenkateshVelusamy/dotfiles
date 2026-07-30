@@ -25,6 +25,50 @@ Config: ~/.config/nvim/init.lua
     SPC p          (visual) paste over without losing yank
     SPC pa         copy full file path to clipboard
 
+## GitHub/GHE PR review (octo.nvim)
+  LLDR = localleader = Space (same as SPC). Run from inside the repo clone.
+  For a clone whose origin is a local path (not a github/ghe URL), octo can't
+  resolve the server repo -> add a real remote once:
+    git remote add ghe https://siemens.ghe.com/<owner>/<repo>.git && git fetch ghe
+  (config already prefers a "ghe" remote, then origin; normal clones need nothing)
+  Open / list:
+    SPC op         list open PRs (picker)         :Octo pr list
+    SPC or         start / resume a review        :Octo review
+    :Octo pr edit N     open PR #N as a buffer
+    :Octo pr search TXT search PRs
+    :Octo issue list / :Octo issue edit N   issues
+  In the PR buffer:
+    Enter          show PR options menu
+    LLDR vs / vr   start / resume a review
+    LLDR po        checkout the PR branch locally
+    LLDR pc/pf/pd  list commits / changed files / diff
+    LLDR pm        merge   (psm squash-merge, prm rebase-merge)   [careful]
+    LLDR ic / io   close / reopen PR
+    LLDR va / vd   add / remove reviewer
+    LLDR ca/cr/cd  add comment / reply / delete comment
+    SPC qa         approve PR    Ctrl-r reload   Ctrl-b browser   Ctrl-y copy URL
+  In the review diff (walk the changes):
+    ]q / [q        next / previous changed FILE
+    ]Q / [Q        first / last changed file
+    ]u / [u        next / previous UNVIEWED file
+    ]c / [c        next / previous changed section (hunk) within a file
+    ]t / [t        next / previous comment THREAD
+    LLDR SPC       toggle this file's "viewed" state
+    LLDR e / b     focus / hide the changed-file panel
+    gf             jump to the real file
+    zo / zR        open one fold (the "+N lines" collapsed context) / open all
+  Comment & submit:
+    LLDR ca        add a comment on the line (V-select first for a range)
+    LLDR sa        add a suggestion (proposed code change)
+    :w             stage the comment as PENDING (not visible until submit)
+    LLDR cd        delete a comment      :q!  discard an unsaved comment window
+    LLDR vs        submit review -> Ctrl-a approve / Ctrl-m comment / Ctrl-r request-changes
+    LLDR vd        discard the whole pending review
+    Ctrl-c         close the review tab (pending comments survive; resume later)
+  Threads:
+    LLDR cr        reply to thread    LLDR rt / rT   resolve / unresolve
+    reactions LLDR r: rp🎉 rh❤️ re👀 r+👍 r-👎 rr🚀 rl😄 rc😕
+
 ## Buffers & windows
     SPC bn / SPC bp    next / previous buffer
     SPC ] / SPC [      next / prev buffer (bufferline tabs at top)

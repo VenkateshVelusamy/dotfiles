@@ -26,16 +26,28 @@ PR's host). Steps:
 2. **Read the whole diff.** Understand what each file/hunk changes and how the
    pieces fit before forming findings. Do not skim.
 
-3. **Apply the review lenses** to the diff:
-   - correctness / bugs (logic, edge cases, error handling)
-   - security (auth, secrets, input at trust boundaries, over-broad IAM/permissions)
-   - simplification / YAGNI (unrequested abstraction, dead code, redundant deps)
-   For a large diff, dispatch the lenses as parallel subagents so each gets its
-   own context, then vet every finding yourself before it reaches the captain.
+3. **Dispatch one subagent per review lens, in parallel.** Send all three in a
+   single message so they run concurrently, each with its own fresh context:
+   - a subagent running the **`/review-code`** skill (correctness, bugs, error
+     handling, tests)
+   - a subagent running the **`/security-review`** skill (auth, secrets,
+     trust-boundary input, over-broad IAM/permissions)
+   - a subagent running the **`/ponytail:ponytail-review`** skill (unrequested
+     abstraction, dead code, redundant deps, simpler equivalents)
+   Give each subagent the PR number, the review worktree path, and the exact
+   head SHA, and require it to return findings as a list of
+   `{ path, line, side, body }` with `line` in the NEW file version. The
+   subagents only read and report - they never post to the PR or write vault
+   state.
 
-4. **Show every finding to the captain in chat first (gate 1).** For each:
-   file, line, the concern, and a suggested fix. The captain cuts, edits, or
-   approves before anything touches the PR server.
+4. **Consolidate, then show the captain (gate 1).** Merge the three subagents'
+   findings into one list: drop duplicates where two lenses flag the same
+   line, keep the strongest wording, and prefix each body with its lens
+   (`[correctness]` / `[security]` / `[simplify]`). Vet every finding yourself
+   against the diff before showing it - discard anything you cannot confirm
+   against the actual code. Then present the consolidated set to the captain
+   (file, line, concern, suggested fix). The captain cuts, edits, or approves
+   before anything touches the PR server.
 
 5. **Stage the approved findings.** Write them to a temp JSON file as
    `[ { "path", "line", "body", "side": "RIGHT" }, ... ]` (line = the line

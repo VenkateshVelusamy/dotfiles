@@ -52,7 +52,12 @@ link "$DOTFILES/AGENTS.md" "$HOME/CLAUDE.md"
 # it lives in the machine-local ~/.claude/settings.json. Enable it once with:
 #   claude/install-checkpoint-hook.sh
 link "$DOTFILES/claude/commands/checkpoint.md" "$HOME/.claude/commands/checkpoint.md"
-chmod +x "$DOTFILES/claude/checkpoint.sh" "$DOTFILES/claude/install-checkpoint-hook.sh" 2>/dev/null || true
+chmod +x "$DOTFILES/claude/checkpoint.sh" "$DOTFILES/claude/install-checkpoint-hook.sh" \
+         "$DOTFILES/claude/install-obsidian.sh" 2>/dev/null || true
+
+# claude-obsidian is a marketplace plugin (not tracked code). Reinstall it on a
+# fresh machine (idempotent; vault init stays manual) with:
+#   claude/install-obsidian.sh
 
 echo
 echo "Done. For machine-local secrets (e.g. work AWS env), create ~/.zshrc.local"

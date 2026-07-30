@@ -70,6 +70,15 @@ count=$(jq 'length' <<<"$comments")
 
 echo "Staging $count pending comment(s) on $host/$repo PR #$pr @ ${head_sha:0:12} (unpublished)..."
 
+# GitHub allows only one pending review per user per PR. Clear any existing one
+# (a prior run, or a stray octo draft) so re-running never fails with 422 or stacks
+# duplicate comments. Only PENDING reviews are deleted; submitted reviews are untouched.
+existing=$(gh api "repos/$repo/pulls/$pr/reviews" --jq ".[] | select(.state==\"PENDING\") | .id")
+for rid in $existing; do
+  echo "  clearing existing pending review $rid"
+  gh api --method DELETE "repos/$repo/pulls/$pr/reviews/$rid" >/dev/null
+done
+
 # Create the review with NO "event" field -> stays PENDING, invisible until you submit.
 jq -n --arg sha "$head_sha" --argjson comments "$comments" \
   '{ commit_id: $sha, comments: $comments }' \

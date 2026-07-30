@@ -34,9 +34,14 @@ Config: ~/.config/nvim/init.lua
   Open / list:
     SPC op         list open PRs (picker)         :Octo pr list
     SPC or         start / resume a review        :Octo review
+    SPC oR         discard pending review + restart fresh
     :Octo pr edit N     open PR #N as a buffer
     :Octo pr search TXT search PRs
     :Octo issue list / :Octo issue edit N   issues
+  Reset a review (pending review is a server-side draft, invisible until submit):
+    :Octo review discard     delete my unpublished pending review
+    :Octo pr edit N          re-open (re-fetches current head)
+    :Octo review             start fresh   (SPC oR does discard+restart)
   In the PR buffer:
     Enter          show PR options menu
     LLDR vs / vr   start / resume a review

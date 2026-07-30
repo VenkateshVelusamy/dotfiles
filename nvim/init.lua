@@ -742,6 +742,9 @@ require("octo").setup({
 })
 vim.keymap.set("n", "<leader>op", "<cmd>Octo pr list<CR>", { desc = "Octo: list PRs" })
 vim.keymap.set("n", "<leader>or", "<cmd>Octo review<CR>", { desc = "Octo: start/resume review" })
+-- Reset review: discard the current pending (unpublished) review, then start fresh.
+-- Generic - acts on whatever PR review buffer is open, no repo/number baked in.
+vim.keymap.set("n", "<leader>oR", "<cmd>Octo review discard<CR><cmd>Octo review<CR>", { desc = "Octo: discard + restart review" })
 
 -- which-key: press a prefix (e.g. Space) and see the available mappings.
 require("which-key").setup({})

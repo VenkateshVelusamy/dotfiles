@@ -55,7 +55,8 @@ link "$DOTFILES/claude/commands/checkpoint.md" "$HOME/.claude/commands/checkpoin
 # /pr-review: multi-lens PR review staged as an unpublished pending review in octo.nvim.
 link "$DOTFILES/claude/commands/pr-review.md" "$HOME/.claude/commands/pr-review.md"
 chmod +x "$DOTFILES/claude/checkpoint.sh" "$DOTFILES/claude/install-checkpoint-hook.sh" \
-         "$DOTFILES/claude/install-obsidian.sh" "$DOTFILES/claude/pr-review.sh" 2>/dev/null || true
+         "$DOTFILES/claude/install-obsidian.sh" "$DOTFILES/claude/pr-review.sh" \
+         "$DOTFILES/claude/pr-review-open.sh" 2>/dev/null || true
 
 # claude-obsidian is a marketplace plugin (not tracked code). Reinstall it on a
 # fresh machine (idempotent; vault init stays manual) with:

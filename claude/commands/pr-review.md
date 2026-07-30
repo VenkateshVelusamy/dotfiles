@@ -9,14 +9,13 @@ submitting. Nothing is ever published autonomously.
 Run from inside the repo's local clone (the one whose git remote points at the
 PR's host). Steps:
 
-0. **Create a throwaway review worktree (isolation).** So the captain's working
-   changes are never disturbed, do the octo review in a detached worktree that
-   shares the clone's remotes. From the captain's clone `<clone>`:
-   `git -C <clone> worktree add /tmp/pr-review-<N> --detach`
-   octo reads the diff from the server, so a detached checkout is enough - the
-   PR branch does NOT need to be checked out. Everything below (gh, octo) runs
-   from `/tmp/pr-review-<N>`. Never use `:Octo pr checkout` - it would switch a
-   branch and defeat the isolation.
+0. **Isolation via treehouse (a pooled-worktree tool).** The captain's working
+   changes are never touched: all review work happens in a treehouse worktree,
+   which shares the clone's remotes (so octo resolves the PR). Do NOT hand-roll
+   `git worktree`. Reading the diff (steps 1-4) can run from the clone or a
+   brief lease; the interactive octo session (step 6) is where treehouse's
+   auto-return matters. octo reads the diff from the server, so the PR branch is
+   never checked out - never use `:Octo pr checkout`.
 
 1. **Fetch the current head.** The PR may have moved since it was opened. Get
    the live diff against its base for the current head SHA - never review a
@@ -63,20 +62,21 @@ PR's host). Steps:
    diff-file offsets, not file line numbers; verify every anchor yourself.
 
 6. **Open the review in tmux + nvim + octo (gate 2).** If inside tmux, launch a
-   dedicated window on the worktree that boots straight into octo:
-   `tmux new-window -c /tmp/pr-review-<N> -n pr-<N>-review "GH_HOST=<host> nvim -c 'Octo pr edit <N>'"`
-   (outside tmux, tell the captain to run that nvim command themselves). Then
-   tell the captain: in that window run `:Octo review resume` to see the
-   findings as inline threads, curate (edit / `SPC cd` delete / `SPC ca` add),
-   and publish with `SPC vs` -> `<C-r>` request-changes / `<C-m>` comment, or
-   discard everything with `SPC vd` / `SPC oR`. Nothing reaches the author until
-   that submit.
+   dedicated window that boots a pooled treehouse worktree straight into octo:
+   `tmux new-window -n pr-<N>-review "~/dotfiles/claude/pr-review-open.sh <N> --host <host> --clone <clone>"`
+   That helper runs `treehouse get` (acquires a pooled worktree) with a shell
+   that execs `nvim -c 'Octo pr edit <N>' -c 'Octo review resume'`, so the
+   findings appear as inline threads on open. (Outside tmux, tell the captain to
+   run the helper themselves.) The captain curates (edit / `SPC cd` delete /
+   `SPC ca` add) and publishes with `SPC vs` -> `<C-r>` request-changes /
+   `<C-m>` comment, or discards with `SPC vd` / `SPC oR`. Nothing reaches the
+   author until that submit.
 
-7. **Tear down after the captain closes the review** (only on their say-so, e.g.
-   once they've closed the tmux window):
-   `git -C <clone> worktree remove /tmp/pr-review-<N>`
-   This refuses if the worktree has uncommitted changes - do NOT force it;
-   investigate instead. The captain's main clone is never touched.
+7. **Teardown is automatic - no step needed.** When the captain quits nvim
+   (`:qa`) or closes the tmux window, the treehouse subshell exits and treehouse
+   AUTOMATICALLY returns the worktree to its pool (it is reused, not destroyed).
+   Only for a genuinely stuck session (lingering processes) use
+   `treehouse return --force <path>`; never `destroy` unless the captain asks.
 
 Re-running on the same PR is safe: the script clears any existing pending
 review before staging, so comments never duplicate. (A pending review the

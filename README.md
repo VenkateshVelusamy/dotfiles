@@ -52,7 +52,9 @@ own tooling and symlinks them into the agent dirs (`~/.claude/skills`,
 ~/dotfiles/skills-install.sh
 ```
 
-Currently: `gnhf` (overnight agent orchestrator; skill ships inside its npm package).
+Installs the agent toolchain: `treehouse` (pooled worktrees), `gnhf` (overnight
+orchestrator + its skill), `tasks-axi` (backlog CLI), and clones the `firstmate`
+agent distro to `~/firstmate` (clone only - never auto-launched).
 
 ## Machine-local / secret config
 

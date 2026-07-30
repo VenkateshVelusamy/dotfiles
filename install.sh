@@ -8,12 +8,19 @@ DOTFILES="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 link() {
   local src="$1" dest="$2"
   mkdir -p "$(dirname "$dest")"
+  # Already the correct symlink? Nothing to do.
+  if [ -L "$dest" ] && [ "$(readlink "$dest")" = "$src" ]; then
+    echo "ok    $dest"
+    return
+  fi
+  # Real file/dir in the way: preserve it before replacing.
   if [ -e "$dest" ] && [ ! -L "$dest" ]; then
-    echo "backing up $dest -> $dest.bak"
+    echo "backup $dest -> $dest.bak"
+    rm -rf "$dest.bak"
     mv "$dest" "$dest.bak"
   fi
   ln -sfn "$src" "$dest"
-  echo "linked $dest"
+  echo "link  $dest -> $src"
 }
 
 link "$DOTFILES/tmux/tmux.conf"        "$HOME/.tmux.conf"
@@ -32,6 +39,13 @@ link "$DOTFILES/cheatsheets/nvim-cheatsheet.md"    "$HOME/.nvim-cheatsheet.md"
 link "$DOTFILES/cheatsheets/tmux-cheatsheet.md"    "$HOME/.tmux-cheatsheet.md"
 link "$DOTFILES/cheatsheets/wezterm-cheatsheet.md" "$HOME/.wezterm-cheatsheet.md"
 link "$DOTFILES/cheatsheets/zsh-cheatsheet.md"     "$HOME/.zsh-cheatsheet.md"
+
+# Global agent instructions: one source, linked to every spot Claude and Codex
+# read. Canonical config dirs plus the home-dir fallbacks both tools walk up to.
+link "$DOTFILES/AGENTS.md" "$HOME/.claude/CLAUDE.md"
+link "$DOTFILES/AGENTS.md" "$HOME/.codex/AGENTS.md"
+link "$DOTFILES/AGENTS.md" "$HOME/AGENTS.md"
+link "$DOTFILES/AGENTS.md" "$HOME/CLAUDE.md"
 
 echo
 echo "Done. For machine-local secrets (e.g. work AWS env), create ~/.zshrc.local"

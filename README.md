@@ -16,7 +16,11 @@ dotfiles/
   zsh/*.zsh               -> ~/.config/zsh/*.zsh   (history, aliases, fzf, plugins, prompt)
   starship/starship.toml  -> ~/.config/starship.toml
   cheatsheets/*.md        -> ~/.*-cheatsheet.md
+  AGENTS.md               -> ~/.claude/CLAUDE.md, ~/.codex/AGENTS.md, ~/AGENTS.md, ~/CLAUDE.md
 ```
+
+`AGENTS.md` is one global instruction file linked to every location Claude and
+Codex read, so both agents follow the same rules on any machine.
 
 ## Install
 

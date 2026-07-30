@@ -42,6 +42,18 @@ git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
 
 zsh plugins and nvim plugins install themselves on first launch.
 
+## Agent skills
+
+Skill content is not vendored here. `skills-install.sh` installs skills via their
+own tooling and symlinks them into the agent dirs (`~/.claude/skills`,
+`~/.codex/skills`) so they track upstream instead of drifting:
+
+```sh
+~/dotfiles/skills-install.sh
+```
+
+Currently: `gnhf` (overnight agent orchestrator; skill ships inside its npm package).
+
 ## Machine-local / secret config
 
 Anything machine-specific or secret (work credentials, per-host env) goes in

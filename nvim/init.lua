@@ -476,6 +476,10 @@ vim.pack.add({
 	"https://github.com/nvim-lua/plenary.nvim",
 	"https://github.com/sindrets/diffview.nvim",
 	"https://github.com/rose-pine/neovim",
+	-- Interactive git status panel, leader-key discovery popup, line blame
+	"https://github.com/NeogitOrg/neogit",
+	"https://github.com/lewis6991/gitsigns.nvim",
+	"https://github.com/folke/which-key.nvim",
 })
 
 -- rose-pine-moon, shared with wezterm + shell. Keep backgrounds transparent so
@@ -704,6 +708,27 @@ end, { desc = "Preview diff overlay" })
 vim.keymap.set("n", "<leader>gb", function()
 	require("mini.git").show_at_cursor()
 end, { desc = "Git blame/show" })
+
+-- Neogit: interactive git status/stage/commit panel (uses diffview for diffs).
+require("neogit").setup({})
+vim.keymap.set("n", "<leader>gg", function()
+	require("neogit").open()
+end, { desc = "Neogit status" })
+
+-- gitsigns: blame ONLY. mini.diff owns the gutter signs, so signs are off here
+-- to avoid a double column; this adds the inline "who last touched this line".
+require("gitsigns").setup({
+	signcolumn = false,
+	numhl = false,
+	current_line_blame = true,
+	current_line_blame_opts = { delay = 300, virt_text_pos = "eol" },
+})
+vim.keymap.set("n", "<leader>gB", function()
+	require("gitsigns").toggle_current_line_blame()
+end, { desc = "Toggle line blame" })
+
+-- which-key: press a prefix (e.g. Space) and see the available mappings.
+require("which-key").setup({})
 
 require("mason").setup({})
 

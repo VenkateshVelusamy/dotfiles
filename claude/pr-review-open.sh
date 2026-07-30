@@ -1,11 +1,14 @@
 #!/usr/bin/env bash
 # pr-review-open.sh - open a PR review in a pooled treehouse worktree, in nvim+octo.
 #
-# Designed to be the tmux window command. It runs `treehouse get`, which acquires a
-# pooled worktree and opens a subshell in it; we point that subshell's $SHELL at an
-# inline exec of nvim launched straight into octo. When you quit nvim the subshell
-# exits, and treehouse AUTOMATICALLY returns the worktree to the pool - so closing the
-# window is the teardown. No explicit cleanup step.
+# Designed to be the tmux window command. It LEASES a pooled worktree (durable, prints
+# only the path), runs nvim directly in it opened on the PR, and returns the lease when
+# nvim exits - so closing the window is the teardown, no explicit cleanup step.
+#
+# It deliberately does NOT use the `treehouse get` subshell + $SHELL trick: treehouse
+# exports $SHELL to the child, so pointing $SHELL at an nvim-exec wrapper makes nvim
+# (and octo's gh subprocesses, which spawn via $SHELL) re-exec nvim recursively - a
+# fork bomb. Leasing + running nvim directly avoids that entirely.
 #
 # Usage (from inside the repo clone, or pass --clone):
 #   pr-review-open.sh <pr-number> [--host <gh-host>] [--clone <path>]
@@ -28,17 +31,15 @@ done
 command -v treehouse >/dev/null || { echo "treehouse not found (brew install treehouse)"; exit 1; }
 command -v nvim >/dev/null || { echo "nvim not found"; exit 1; }
 
-# Transient $SHELL for the treehouse subshell: exec nvim into octo, so quitting nvim
-# exits the shell and triggers treehouse's auto-return. mktemp keeps it self-contained.
-runner=$(mktemp "${TMPDIR:-/tmp}/pr-review-runner.XXXXXX.sh")
-trap 'rm -f "$runner"' EXIT
-cat >"$runner" <<RUNNER
-#!/usr/bin/env bash
-exec env GH_HOST=$host nvim -c "Octo pr edit $pr" -c "Octo review resume"
-RUNNER
-chmod +x "$runner"
-
-# treehouse get runs in the clone, hands out a pooled worktree, runs our runner as its
-# shell, and auto-returns the worktree when nvim exits.
 cd "$clone"
-SHELL="$runner" treehouse get
+worktree=$(treehouse get --lease --lease-holder "pr-review-$pr")
+[ -n "$worktree" ] && [ -d "$worktree" ] || { echo "treehouse did not return a worktree path"; exit 1; }
+
+# Return the lease no matter how nvim exits (quit, crash, window close/kill).
+trap 'treehouse return --force "$worktree" >/dev/null 2>&1 || true' EXIT INT TERM
+
+# Open only the PR buffer. Do NOT chain `Octo review resume` here - it races octo's
+# async gh fetch and can fire before the pending review is loaded. Once nvim is up,
+# run `:Octo review resume` (or SPC vr) yourself to see the staged findings.
+cd "$worktree"
+GH_HOST="$host" nvim -c "Octo pr edit $pr"

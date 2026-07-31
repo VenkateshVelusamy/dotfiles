@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 # checkpoint.sh — write a session checkpoint from a Claude Code hook.
 #
-# Wired as a PreCompact and SessionEnd hook (see claude/settings-hooks.json).
-# Reads the hook JSON on stdin, extracts transcript_path, and produces a
-# checkpoint markdown file so a session survives compaction/clear.
+# Wired as a PreCompact hook (auto + manual). Compaction only — a /clear does
+# not checkpoint. Reads the hook JSON on stdin, extracts transcript_path, and
+# produces a checkpoint markdown file so a session survives compaction.
 #
 # Summary quality is controlled by CLAUDE_CHECKPOINT_MODE:
 #   ai    (default) — shell out to headless `claude -p` for a real summary
@@ -18,7 +18,7 @@ set -euo pipefail
 MODE="${CLAUDE_CHECKPOINT_MODE:-ai}"
 OUTDIR="${CLAUDE_CHECKPOINT_DIR:-$HOME/Documents/Notes/inbox}"
 
-# Recursion guard: the AI path spawns `claude -p`, whose own SessionEnd would
+# Recursion guard: the AI path spawns `claude -p`, whose own compaction would
 # re-fire this hook. Bail out when we're already inside a checkpoint's session.
 if [ -n "${CLAUDE_CHECKPOINT_ACTIVE:-}" ]; then
   echo '{"systemMessage":"checkpoint: nested session, skipped"}'; exit 0

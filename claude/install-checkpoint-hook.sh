@@ -34,20 +34,15 @@ def has(event, matcher):
     return False
 
 # PreCompact fires on BOTH manual (/compact) and automatic (auto) compaction.
+# Compaction only — a /clear intentionally does NOT checkpoint.
 for m in ("auto", "manual"):
     hooks.setdefault("PreCompact", [])
     if not has("PreCompact", m):
         hooks["PreCompact"].append(entry(m))
 
-# SessionEnd fires on /clear, logout, exit. No matcher; script inspects `reason`.
-hooks.setdefault("SessionEnd", [])
-if not any(any(h.get("command") == hook for h in e.get("hooks", []))
-           for e in hooks["SessionEnd"]):
-    hooks["SessionEnd"].append(entry())
-
 json.dump(cfg, open(path, "w"), indent=2)
 open(path, "a").write("\n")
-print("registered checkpoint hook -> PreCompact(auto,manual) + SessionEnd")
+print("registered checkpoint hook -> PreCompact(auto,manual)")
 PY
 
 echo "done. backup at $SETTINGS.bak"

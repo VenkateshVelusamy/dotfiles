@@ -3,15 +3,15 @@
 Generic Claude Code additions, tracked here and installed via the repo's
 `install.sh` (+ a one-time hook registration).
 
-## /checkpoint — session summary before compact/clear
+## /checkpoint — session summary before compaction
 
 Writes a resume-checkpoint of a session so it survives Claude Code's context
-compaction or a `/clear`. Two entry points, one shared idea:
+compaction. Two entry points, one shared idea:
 
 | Piece | Fires | Uses | Quality |
 |---|---|---|---|
 | `commands/checkpoint.md` (slash command) | manually: you type `/checkpoint` | the **live session's** own reasoning | highest — full context |
-| `checkpoint.sh` (hook) | automatically: PreCompact (auto + manual) and SessionEnd (clear/logout/exit) | reads `transcript_path`, shells out to headless `claude -p` | good — re-read transcript |
+| `checkpoint.sh` (hook) | automatically: PreCompact (auto + manual). Compaction only — a `/clear` does not checkpoint | reads `transcript_path`, shells out to headless `claude -p` | good — re-read transcript |
 
 Output lands in `$CLAUDE_CHECKPOINT_DIR` (default `~/.claude/checkpoints/`),
 named `<timestamp>-<project>-<trigger>.md`.
@@ -33,7 +33,7 @@ to compact; the hook is the automatic safety net.
   transcript tail. Free and instant. Set `export CLAUDE_CHECKPOINT_MODE=dump`.
 
 A recursion guard (`CLAUDE_CHECKPOINT_ACTIVE`) stops the headless `claude -p`
-session's own SessionEnd from re-triggering the hook.
+session's own compaction from re-triggering the hook.
 
 ## Install
 
@@ -51,15 +51,16 @@ tracked). Register it once per machine:
 claude/install-checkpoint-hook.sh   # idempotent; backs up settings.json first
 ```
 
-That adds `PreCompact` (matchers `auto` + `manual`) and `SessionEnd` hooks
-pointing at this checkout's `checkpoint.sh`, so product upgrades track the repo.
+That adds the `PreCompact` hook (matchers `auto` + `manual`) pointing at this
+checkout's `checkpoint.sh`, so product upgrades track the repo.
 
 ## Caveats
 
 - A hook writes a **side file**; it does not change what the compactor keeps in
   context. "Checkpoint" = durable external record to re-read next session.
-- `SessionEnd` cannot block exit — keep it quick. Use `dump` mode if the `ai`
-  delay on `/clear` bothers you.
+- Compaction only: a `/clear` intentionally does not checkpoint. If you want a
+  summary before clearing, run `/checkpoint` first.
+- `ai` mode adds ~30–60s before compaction; use `dump` mode to make it instant.
 - Requires `claude` on PATH for `ai` mode; falls back to a dump otherwise.
 
 ## claude-obsidian plugin

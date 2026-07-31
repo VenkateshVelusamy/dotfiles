@@ -482,6 +482,8 @@ vim.pack.add({
 	"https://github.com/folke/which-key.nvim",
 	-- GitHub/GHE issues + PR review (inline comment threads) in-editor
 	"https://github.com/pwntester/octo.nvim",
+	-- In-buffer markdown rendering (headings, code, tables, checkboxes)
+	"https://github.com/MeanderingProgrammer/render-markdown.nvim",
 })
 
 -- rose-pine-moon, shared with wezterm + shell. Keep backgrounds transparent so
@@ -745,6 +747,11 @@ vim.keymap.set("n", "<leader>or", "<cmd>Octo review<CR>", { desc = "Octo: start/
 -- Reset review: discard the current pending (unpublished) review, then start fresh.
 -- Generic - acts on whatever PR review buffer is open, no repo/number baked in.
 vim.keymap.set("n", "<leader>oR", "<cmd>Octo review discard<CR><cmd>Octo review<CR>", { desc = "Octo: discard + restart review" })
+
+-- render-markdown: in-buffer preview. Renders when not in insert mode / not on
+-- the cursor line, so editing stays raw and the rest of the file reads clean.
+require("render-markdown").setup({})
+vim.keymap.set("n", "<leader>m", "<cmd>RenderMarkdown toggle<CR>", { desc = "Markdown: toggle render" })
 
 -- which-key: press a prefix (e.g. Space) and see the available mappings.
 require("which-key").setup({})

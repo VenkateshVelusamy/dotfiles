@@ -11,19 +11,22 @@
 # fork bomb. Leasing + running nvim directly avoids that entirely.
 #
 # Usage (from inside the repo clone, or pass --clone):
-#   pr-review-open.sh <pr-number> [--host <gh-host>] [--clone <path>]
+#   pr-review-open.sh <pr-number> [--host <gh-host>] [--clone <path>] [--map <file>]
 #
+# --map opens a review mental-map file in a left split alongside the octo PR buffer.
 # The clone must have a remote (ghe/origin) pointing at the PR's host so octo resolves.
 set -euo pipefail
 
-pr=${1:?usage: pr-review-open.sh <pr-number> [--host <host>] [--clone <path>]}
+pr=${1:?usage: pr-review-open.sh <pr-number> [--host <host>] [--clone <path>] [--map <file>]}
 shift
 host=siemens.ghe.com
 clone=$PWD
+map=
 while [ $# -gt 0 ]; do
   case "$1" in
     --host) host=${2:?}; shift 2 ;;
     --clone) clone=${2:?}; shift 2 ;;
+    --map) map=${2:?}; shift 2 ;;
     *) echo "unknown arg: $1" >&2; exit 2 ;;
   esac
 done
@@ -38,8 +41,12 @@ worktree=$(treehouse get --lease --lease-holder "pr-review-$pr")
 # Return the lease no matter how nvim exits (quit, crash, window close/kill).
 trap 'treehouse return --force "$worktree" >/dev/null 2>&1 || true' EXIT INT TERM
 
-# Open only the PR buffer. Do NOT chain `Octo review resume` here - it races octo's
-# async gh fetch and can fire before the pending review is loaded. Once nvim is up,
-# run `:Octo review resume` (or SPC vr) yourself to see the staged findings.
+# Open the PR buffer; if a map file was given, open it in a left vertical split so the
+# mental map and the octo PR sit side by side. Do NOT chain `Octo review resume` here -
+# it races octo's async gh fetch; run `:Octo review resume` (or SPC vr) once nvim is up.
 cd "$worktree"
-GH_HOST="$host" nvim -c "Octo pr edit $pr"
+if [ -n "$map" ] && [ -f "$map" ]; then
+  GH_HOST="$host" nvim -c "Octo pr edit $pr" -c "vsplit $map" -c "wincmd h"
+else
+  GH_HOST="$host" nvim -c "Octo pr edit $pr"
+fi

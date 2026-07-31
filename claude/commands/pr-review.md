@@ -48,12 +48,27 @@ PR's host). Steps:
    (file, line, concern, suggested fix). The captain cuts, edits, or approves
    before anything touches the PR server.
 
-5. **Stage the approved findings.** Write them to a temp JSON file as
+5. **Write the per-file mental map (ALWAYS, every PR).** Before staging, write a
+   comprehensive review companion to `~/pr-reviews/pr-<N>-map.md` so the captain
+   can build a fast mental model. This is NOT committed to the PR branch (that
+   would pollute the author's PR) - it is a captain-owned local file. Include:
+   - a one-paragraph "what the PR does in one breath" summary,
+   - **every single changed file**, grouped by concern, each with: what the file
+     is / its functionality, what THIS PR changes in it (with +/- line counts),
+     and an explicit "PAY ATTENTION" note for anything subtle, risky, or where a
+     CR comment lands,
+   - which staged CR findings map to which file+line,
+   - a short "reading order to build the map fastest" list,
+   - an overall verdict.
+   Be comprehensive and concrete (real paths, line numbers, the WHY) - it is read
+   cold. `mkdir -p ~/pr-reviews` first.
+
+6. **Stage the approved findings.** Write them to a temp JSON file as
    `[ { "path", "line", "body", "side": "RIGHT" }, ... ]` (line = the line
    number in the file's NEW version; use side "LEFT" only for a removed line),
    then run the script FROM INSIDE the worktree (it resolves the remote from
    the cwd), wrapped in a subshell so it never moves the parent shell:
-   `(cd /tmp/pr-review-<N> && ~/dotfiles/claude/pr-review.sh <N> /tmp/pr-<N>-findings.json)`
+   `(cd <worktree> && ~/dotfiles/claude/pr-review.sh <N> /tmp/pr-<N>-findings.json)`
    The script re-fetches the current head SHA at post time, deletes any
    existing pending review first (GitHub allows only one per user per PR, so
    this prevents a 422 and stops duplicate comments), and posts the batch as a
@@ -61,22 +76,25 @@ PR's host). Steps:
    at the CURRENT head just before writing the JSON - subagents often return
    diff-file offsets, not file line numbers; verify every anchor yourself.
 
-6. **Open the review in tmux + nvim + octo (gate 2).** If inside tmux, launch a
-   dedicated window that boots a pooled treehouse worktree straight into octo:
-   `tmux new-window -n pr-<N>-review "~/dotfiles/claude/pr-review-open.sh <N> --host <host> --clone <clone>"`
-   That helper runs `treehouse get` (acquires a pooled worktree) with a shell
-   that execs `nvim -c 'Octo pr edit <N>' -c 'Octo review resume'`, so the
-   findings appear as inline threads on open. (Outside tmux, tell the captain to
-   run the helper themselves.) The captain curates (edit / `SPC cd` delete /
-   `SPC ca` add) and publishes with `SPC vs` -> `<C-r>` request-changes /
-   `<C-m>` comment, or discards with `SPC vd` / `SPC oR`. Nothing reaches the
-   author until that submit.
+7. **Open the review in tmux + nvim + octo, with the map (gate 2).** If inside
+   tmux, launch a dedicated window that boots a pooled treehouse worktree into
+   octo AND opens the mental map in a left split (pass `--map`):
+   `tmux new-window -n pr-<N>-review "~/dotfiles/claude/pr-review-open.sh <N> --host <host> --clone <clone> --map ~/pr-reviews/pr-<N>-map.md"`
+   The helper leases a pooled worktree, runs `nvim -c 'Octo pr edit <N>'` with
+   the map file in a `vsplit`, so the map and the octo PR sit side by side.
+   (Outside tmux, tell the captain to run the helper themselves.) The captain
+   reads the map, runs `:Octo review resume` (or `SPC vr`) to see the inline
+   threads, curates (edit / `SPC cd` delete / `SPC ca` add), and publishes with
+   `SPC vs` -> `<C-r>` request-changes / `<C-m>` comment (the summary field is
+   where a positive/overall note goes), or discards with `SPC vd` / `SPC oR`.
+   Nothing reaches the author until that submit.
 
-7. **Teardown is automatic - no step needed.** When the captain quits nvim
+8. **Teardown is automatic - no step needed.** When the captain quits nvim
    (`:qa`) or closes the tmux window, the treehouse subshell exits and treehouse
    AUTOMATICALLY returns the worktree to its pool (it is reused, not destroyed).
    Only for a genuinely stuck session (lingering processes) use
    `treehouse return --force <path>`; never `destroy` unless the captain asks.
+   The `~/pr-reviews/pr-<N>-map.md` file persists as a durable review artifact.
 
 Re-running on the same PR is safe: the script clears any existing pending
 review before staging, so comments never duplicate. (A pending review the
